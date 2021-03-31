@@ -10,19 +10,20 @@ the square-root of that number and if a prime is found to be a
 factor then don't add it to the list.  If no factor is found
 to evenly divide a number, then it is appended to the list of
 found primes.
-
-I've found this code to be 3610.4517312542994X faster.
 */
 
 #include <array>
 #include <cmath>
 #include <iostream>
 #include <chrono>
+#include <utility>
 
 
 template<
   int upper_bound>
-std::array<int, 1+(upper_bound/2)>
+std::pair<
+  std::array<int, 1+(upper_bound/2)>,
+  int>
 find_primes_less_than(){
   std::array<int, 1+(upper_bound/2)> found_primes;
   size_t end_index = 0;
@@ -30,8 +31,8 @@ find_primes_less_than(){
 
   for(int number = 3; number <= upper_bound; number += 2){
     bool factor_found = false;
-    for(auto possible_factor_itr = found_primes.begin(); *possible_factor_itr < floor(sqrt(number)); ++possible_factor_itr){
-      if(! number % *possible_factor_itr){
+    for(size_t possible_factor_idx = 0; found_primes[possible_factor_idx] <= floor(sqrt(number)); ++possible_factor_idx){
+      if(! (number % found_primes[possible_factor_idx])){
         factor_found = true;
         break;
       }
@@ -40,24 +41,33 @@ find_primes_less_than(){
       found_primes[end_index++] = number;
   }
 
-  return found_primes;
+  return {found_primes, end_index};
 }
 
 
-int main(int argc, char **argv){
+int main(){
   using namespace std::chrono_literals;
 
+  constexpr int upper_bound = 1000;
+
+  std::pair<
+    std::array<int, 1+(upper_bound/2)>,
+    int> found_pair;
   int iterations = 0;
   std::chrono::time_point<std::chrono::system_clock> time_end;
   auto time_start = std::chrono::system_clock::now();
   do{
-    find_primes_less_than<1000>();
+    found_pair = find_primes_less_than<upper_bound>();
     iterations++;
   }while((time_end = std::chrono::system_clock::now()) - time_start < 5s );
 
   double time_duration = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::duration<double>(time_end-time_start)).count();
 
   std::cout << time_duration / iterations << " seconds per prime-finding, with " << iterations << " iterations completed." << std::endl;
+  for(int i = 0; i < found_pair.second; ++i){
+    std::cout << found_pair.first[i] << ", ";
+  }
+  std::cout << std::endl;
 
   return 0;
 }
