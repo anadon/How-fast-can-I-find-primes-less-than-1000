@@ -85,13 +85,14 @@ find_primes_less_than(){
 
 
 template<class return_type>
-void run_primes_time_experiment(const char* desc, return_type (*prime_func) () ){
+void run_primes_time_experiment(const char* desc, return_type (*prime_func) (), const int upper_bound){
   using namespace std::chrono;
 
   return_type found;
   int iterations = 0;
   std::chrono::time_point<std::chrono::system_clock> time_end;
   auto time_start = std::chrono::system_clock::now();
+
   do{
     found = prime_func();
     iterations++;
@@ -99,19 +100,24 @@ void run_primes_time_experiment(const char* desc, return_type (*prime_func) () )
 
   double time_duration = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::duration<double>(time_end-time_start)).count();
 
-  std::cout << "With approach \"" << desc << "\": " << time_duration / iterations << " seconds per prime-finding, with " << iterations << " iterations completed." << std::endl;
-  // for(int i : found){
-  //   std::cout << i << ", ";
-  // }
-  // std::cout << std::endl;
+  std::cout << "With approach \"" << desc << "\": " << time_duration / iterations;
+  std::cout << " seconds per prime-finding, with " << iterations;
+  std::cout << " iterations completed when finding primes less than " << upper_bound;
+  std::cout << "." << std::endl;
+  #if 0
+  for(int i : found){
+    std::cout << i << ", ";
+  }
+  std::cout << std::endl;
+  #endif
 }
 
 
 int main(){
   constexpr int upper_bound = 1000000;
 
-  run_primes_time_experiment<std::vector<int>>("list", find_primes_less_than<upper_bound>);
-  run_primes_time_experiment<std::vector<bool>>("sieve", prime_sieve_less_than<upper_bound>);
+  run_primes_time_experiment<std::vector<int>>("list", find_primes_less_than<upper_bound>, upper_bound);
+  run_primes_time_experiment<std::vector<bool>>("sieve", prime_sieve_less_than<upper_bound>, upper_bound);
 
   return 0;
 }
